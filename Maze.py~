@@ -1143,6 +1143,7 @@ while True:
             sys.exit()
             
         if start == True:
+            #print('start does equeal true!!!')
             timeC = 'Elapsed Time: ' + current_time.return_eta()    
             clock.update(timeC) #Updating the clock
             if event.type is KEYDOWN:
