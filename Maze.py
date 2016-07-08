@@ -35,11 +35,14 @@ MAZE_TOPLEFT = (50,150)   # Top left corner of the maze area
 MAZE_WIDTH = 1000
 MAZE_HEIGHT = 600
 
-ROOMS_V =30  # number of rooms in the vertical direction
+ROOMS_V =20  # number of rooms in the vertical direction
 ROOMS_H = int(ROOMS_V * (float(MAZE_WIDTH)/float(MAZE_HEIGHT)))
 SIZE = int(float(MAZE_HEIGHT)/float(ROOMS_V))
 STARTING_COL = 0
 STARTING_ROW = int(ROOMS_V/2)
+GAME_CHEESE = 1 #How many cheeses we want to store in the maze
+DIFFICULTY = 'M' 
+LAST_CHEESE_ROOM = 0
 
 windowSurface = pygame.display.set_mode([WINDOWWIDTH, WINDOWHEIGHT])
 pygame.display.set_caption('Maze')
@@ -56,15 +59,22 @@ class Maze(object):
         
         return  # return from Maze.__init__
 
-    def build(self):
+    def build(self,difficulty = 'M'):
     # Maze.build function called at the Maze object level to build a maze.
-
+        if difficulty == 'E':
+            temp_rooms = int(ROOMS_V / 2)
+        elif difficulty == 'M':
+            temp_rooms = int(ROOMS_V)
+        elif difficulty == 'H':
+            temp_rooms = int(ROOMS_V * 2)
+        elif difficulty == 'H+':
+            temp_rooms = int(ROOMS_V * 4)
 
         # Fill in the rooms array with the room objects
-        for h in range (0,ROOMS_H):
+        for h in range (0,int(temp_rooms * (float(MAZE_WIDTH)/float(MAZE_HEIGHT)))):
             Room.rooms.append([])  # this creates the second dimension
-            for v in range(0,ROOMS_V):
-                room = Room(size=SIZE,row=v,col=h)
+            for v in range(0,temp_rooms):
+                room = Room(size=int(float(MAZE_HEIGHT)/float(temp_rooms)),row=v,col=h)
                 Room.rooms[h].append(room)
                 Room.unused_rooms.append(room)
         
@@ -396,6 +406,7 @@ class Room(object):
         self.room_color = BACKGROUND  # chose the paint colors
         self.wall_color = BLACK
         self.size = size  # size of the room in pixels
+        print(self.size)
         self.col = col    # column coordinate
         self.row = row   # row coordinate
         self.state = None   # usage state of the room
@@ -558,6 +569,12 @@ class Rat(object):  # create Rat object
         else:
             return False
                 
+    def cheese_num(self):
+        return len(self.cheeses)
+    def reset_cheese(self):
+        self.cheeses = []
+    def change_color(self,color_n):
+        self.color = color_n
 #------------------------------------------------------------------
 # Define the widget classes
 #------------------------------------------------------------------
@@ -966,8 +983,6 @@ class Timer(object):
     def return_eta(self):
         #Returns the Time sence start of a timer, in secounds
         temp_eta = int(time.time() - self.start_time)
-        print(time.time())
-        print(self.start_time)
         return str(temp_eta)
 
 
@@ -1041,59 +1056,64 @@ def store_cheese(num_cheeses= 10):
         num_stored += 1
         pygame.display.update()
     return  # return from store cheeese
-
+def store_cheese_room(room):
+    return
 def init_controls():
 # Initialize the game controls and scoreboard widgets
 # This is mainley a function for Loqoman, his editor makes these things easy to see
-
+    global go
     go = Button(name='Go',color = RED,topleft=(10,10),size = 35, #Big GO button at the top
                 label='Go',app_handler=go_application_handler)
-
+    global player1
     player1 = Button(name='Player1',color=RED,
                      topleft =(WINDOWWIDTH-int(WINDOWWIDTH/3),10),size = 20,
                      label='Player 1',group='Player')
     
     player1.toggle() # set default to player 1 to True
-
+    global player1_score
     player1_score=Text(color=RED,topleft=(player1.right+100,player1.top),
                        name='player1_score',font_size=30,max_chars=20,
                        text='Best time',justify='LEFT',outline=False)
                                           
-
+    global player2
     player2 = Button(name='Player2',color=BLUE,
                      topleft =(player1.left,player1.bottom+10),size = 20,
                      label='Player 2',group='Player')
+    global player2_score
     player2_score=Text(color=BLUE,topleft=(player2.right+100,player2.top),
                        name='player2_score',font_size=30,max_chars=20,
                        text='Best time',justify='LEFT',outline=False)
-
+    #Clock area at the top
     global clock
     clock = Text(color=BLACK,topleft=(int(WINDOWWIDTH/2-300),10),
-                  name='clock',font_size=40,max_chars=20,text='Elapsed time',  #Clock area at the top
+                  name='clock',font_size=40,max_chars=20,text='Hit go button to begin!',  
                   justify='LEFT',outline=True)
-    
+    global cheese_score
+    #cheese score text
+    cheese_score = Text(color=BLACK,topleft=((clock.topleft[0] - 60),700),name='score',font_size=40,
+                        max_chars=20,text='Current cheese gathered:',justify='LEFT',outline=True)
     #Following are the difficulty buttons
     dif_easy = Button(name ='Easy',color = RED,
                       topleft=(10,75),size = 15,
-                      label='Easy',group='Difficulty')
+                      label='Easy',app_handler=easy_button_handler, group='Difficulty')
 
     dif_normal = Button(name ='Normal',color = RED,
                       topleft=(10,dif_easy.bottom+10),size = 15,
-                      label='Normal',group='Difficulty')
+                      label='Normal',app_handler=med_button_handler, group='Difficulty')
 
     dif_normal.toggle() # set default difficulty to 'Normal'
 
     tough = Button(name ='Tough',color = RED,
                       topleft=(10,dif_normal.bottom+10),size = 15,
-                      label='Tough',group='Difficulty')
+                      label='Tough',app_handler=hrd_button_handler,group='Difficulty')
 
     dig_worst = Button(name='Horrible',color=RED,
                        topleft=(10,tough.bottom+10),size = 15,
-                       label='Horrible',group='Difficulty')
-
+                       label='Horrible',app_handler= hrdr_button_handler,group='Difficulty')
+    global new
     new = Button(name ='New',color=RED,
                  topleft=(10,dig_worst.bottom+20),size=15,
-                 label='New maze')
+                 label='New maze',app_handler=new_maze_handler)
                 
     global current_time
     current_time = Timer(name = 'Elapsed Time: ',handler = '', repeat = False)
@@ -1109,26 +1129,52 @@ def go_application_handler(self):
         go_app_time = True
     global timeC
     timeC = 'Elapsed Time: ' + current_time.return_eta()    
-    print(timeC)
     global start  #Has to be global because of where it is being referenced
     start = True
     return
-    #
+
+def new_maze_handler(self):
+    print(difficulty)
+    maze.build(difficulty=difficulty)
+    
+    
+    rat.draw()
+    
+    store_cheese(GAME_CHEESE)
+
+    new.toggle()
+def easy_button_handler(self): #Changing the global var, difficulty to E for easy, M for medium, H for hard, and H+ for really hard
+    global difficulty
+    difficulty = 'E'
+def med_button_handler(self):
+    global difficulty
+    difficulty = 'M'
+def hrd_button_handler(self):
+    global difficulty
+    difficulty = 'H'
+def hrdr_button_handler(self):
+    global difficulty
+    difficulty = 'H+' 
+    
 
 #----------------Main portion of the program ver 0.2 ----------------#
 # Initialize things before the loop
 pygame.key.set_repeat(50,50)
 init_controls()
 
-
+global difficulty
+difficulty = 'M'
 
 maze = Maze()
 
-maze.build()
+maze.build(difficulty = difficulty)
 
-store_cheese()
+store_cheese(GAME_CHEESE)
 
-rat = Rat()
+rat = Rat(color=RED)
+#Which player has gone
+player1_loop = False
+player2_loop = False
 
 global start
 start = False
@@ -1137,14 +1183,18 @@ start = False
 #  Main game loop, runs until window x'd out or someone wins
 
 while True:
+    if start == True:
+        currentTimer = current_time.return_eta()
+        timeC = 'Elapsed Time: ' +  currentTimer #timeC is the var to hold the clock time. It means time[Clock]
+        clock.update(timeC) #Updating the clock
+        cheese_score.update('Current cheese gathered:' + str(rat.cheese_num())) #updating the cheese score
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
             
         if start == True:
-            timeC = 'Elapsed Time: ' + current_time.return_eta()    
-            clock.update(timeC) #Updating the clock
+
             if event.type is KEYDOWN:
 
                 key = pygame.key.name(event.key) 
@@ -1175,8 +1225,30 @@ while True:
                     if widget_object.isclicked(pos): #isclicked, to see if something is clicked.
 
                         widget_object.handler()#Well, its clicked, so do the self.handler()
-      
-        
+    if player1_loop == False: #If player 1 is going
+        if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]): #wait untill they have all the cheese and are at the begginiing
+            start = False
+            player1_score.update('Best time: ' + currentTimer)
+            player1_loop = True #Meaning if they have gone or not, in this case, this is saying that player1 HAS gone 
+            rat.change_color(BLUE)
+            store_cheese(GAME_CHEESE)
+            rat.reset_cheese()
+            go.toggle() #Re toggling the go button
+            rat.change_color(BLUE)
+            player2_loop = False
+            player1.toggle
+            player2.toggle
+    elif player2_loop == False:
+        if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]):
+            start = False
+            player2_score.update('Best time: ' + currentTimer)
+            player1_loop = False
+            rat.change_color(RED)
+            rat.reset_cheese()
+            store_cheese(GAME_CHEESE)
+            go.toggle()
+            rat.change_color(RED)
+            
     Timer.process()
     pygame.display.update()
     time.sleep(.02)
