@@ -406,7 +406,6 @@ class Room(object):
         self.room_color = BACKGROUND  # chose the paint colors
         self.wall_color = BLACK
         self.size = size  # size of the room in pixels
-        print(self.size)
         self.col = col    # column coordinate
         self.row = row   # row coordinate
         self.state = None   # usage state of the room
