@@ -1250,6 +1250,7 @@ while True:
             start = False
             if int(currentTimer) < high_score2:
                 high_score2 = int(currentTimer)
+                str(high_score2)
             player2_score.update('Best time: ' + str(high_score2))
             player1_loop = False
             rat.change_color(RED)
