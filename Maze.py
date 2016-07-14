@@ -5,15 +5,16 @@ import pygame, sys, time, random,math
 from pygame.locals import *
 
 pygame.init()
-''' Maze ver 0.1 - have the rat look for the cheeses using the arrow keys.
-Scoring and controls not implemented yet nor does he know when he has found the
-way out.  But you can pick up the cheeses. By - Loqoman and IslandSparky
+''' Maze ver 0.1 - have the rat look for the cheeses using the arrow keys. After all cheeses have been collected
+    return to the home room to stop the timer and save your best time. By - Loqoman and IslandSparky
     ver 1.0 Corrected maze logic so maze complexity can be changed.
+    ver 1.1 Revised game instructions above
 
  
 Programmer Changelog
 
-7/13/2016 9:11PM  - Commit version 1.0 to github '''
+7/13/2016 9:11PM  - Commit version 1.0 to github
+7/13/2016 9:18PM  - Commit version 1.1 to github'''
 
 
 BLACK = (0,0,0)
