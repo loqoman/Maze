@@ -581,6 +581,7 @@ class Rat(object):  # create Rat object
         self.cheeses = []
     def change_color(self,color_n):
         self.color = color_n
+<<<<<<< HEAD
 #Node class to hold the Nodes for the link-list
 #-------------------Node and link-list class---------------------------#
 # So heres the plan. Each node points to the node behind it,
@@ -630,6 +631,9 @@ class LinkedList(object):
     def __init__(self, head=None):
         self.head = head
 #-----------------------End of both link-list classes--------#
+=======
+        self.draw()
+>>>>>>> e36307ed284d636c09a46cc2e6984b1f9e1b46ff
 #------------------------------------------------------------------
 # Define the widget classes
 #------------------------------------------------------------------
@@ -833,6 +837,8 @@ class Button(Widget):
 
 
         return
+    def return_state(self):
+        return self.state
              
 
 class Text(Widget):
@@ -1229,7 +1235,8 @@ rat = Rat(color=RED)
 #Which player has gone
 player1_loop = False
 player2_loop = False
-
+high_score1 = 10000000
+high_score2 = 10000000
 global start
 start = False
 #Varible to tell when the user has clicked the go button
@@ -1238,8 +1245,8 @@ start = False
 
 while True:
     if start == True:
-        currentTimer = current_time.return_eta()
-        timeC = 'Elapsed Time: ' +  currentTimer #timeC is the var to hold the clock time. It means time[Clock]
+        currentTimer = current_time.return_eta() #The current time, in secounds
+        timeC = 'Elapsed Time: ' +  currentTimer #TimeC is the var to hold the clock time. It means time[Clock]
         clock.update(timeC) #Updating the clock
         cheese_score.update('Current cheese gathered:' + str(rat.cheese_num())) #updating the cheese score
     for event in pygame.event.get():
@@ -1282,27 +1289,33 @@ while True:
     if player1_loop == False: #If player 1 is going
         if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]): #wait untill they have all the cheese and are at the begginiing
             start = False
-            player1_score.update('Best time: ' + currentTimer)
+            if int(currentTimer) < high_score1:
+                high_score1 = int(currentTimer)
+            player1_score.update('Best time: ' + str(high_score1))
             player1_loop = True #Meaning if they have gone or not, in this case, this is saying that player1 HAS gone 
             rat.change_color(BLUE)
             store_cheese(GAME_CHEESE)
             rat.reset_cheese()
             go.toggle() #Re toggling the go button
             rat.change_color(BLUE)
+            pygame.display.update()
             player2_loop = False
-            player1.toggle
-            player2.toggle
-    elif player2_loop == False:
+            player1.toggle()
+            player2.toggle()
+    elif player2_loop == False: #If player 2 is going
         if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]):
             start = False
-            player2_score.update('Best time: ' + currentTimer)
+            if int(currentTimer) < high_score2:
+                high_score2 = int(currentTimer)
+            player2_score.update('Best time: ' + str(high_score2))
             player1_loop = False
             rat.change_color(RED)
             rat.reset_cheese()
             store_cheese(GAME_CHEESE)
             go.toggle()
+            player1.toggle()
+            player2.toggle()
             rat.change_color(RED)
-            
     Timer.process()
     pygame.display.update()
     time.sleep(.02)
