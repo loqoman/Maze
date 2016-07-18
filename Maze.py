@@ -5,6 +5,7 @@ import pygame, sys, time, random,math
 from pygame.locals import *
 
 pygame.init()
+<<<<<<< HEAD
 
 ''' 
 Maze ver 0.1 - have the rat look for the cheeses using the arrow keys + keyboard.
@@ -12,6 +13,18 @@ Scoring and controls not implemented yet nor does he know when he has found the
 way out.  But you can pick up the cheeses.
 If you want it to be hard, change ROOMS_V to 50 and see what happens.
 '''
+=======
+''' Maze ver 0.1 - have the rat look for the cheeses using the arrow keys. After all cheeses have been collected
+    return to the home room to stop the timer and save your best time. By - Loqoman and IslandSparky
+    ver 1.0 Corrected maze logic so maze complexity can be changed.
+    ver 1.1 Revised game instructions above
+
+ 
+Programmer Changelog
+
+7/13/2016 9:11PM  - Commit version 1.0 to github
+7/13/2016 9:18PM  - Commit version 1.1 to github'''
+>>>>>>> e25ef302721297dd305b9076a625b1d0266958e7
 
 
 BLACK = (0,0,0)
@@ -38,13 +51,11 @@ MAZE_TOPLEFT = (50,150)   # Top left corner of the maze area
 MAZE_WIDTH = 1000
 MAZE_HEIGHT = 600
 
-ROOMS_V =20  # number of rooms in the vertical direction
-ROOMS_H = int(ROOMS_V * (float(MAZE_WIDTH)/float(MAZE_HEIGHT)))
-SIZE = int(float(MAZE_HEIGHT)/float(ROOMS_V))
-STARTING_COL = 0
-STARTING_ROW = int(ROOMS_V/2)
-GAME_CHEESE = 1 #How many cheeses we want to store in the maze
-DIFFICULTY = 'M' 
+# The following two dictionaries define the room and cheese complexity for various
+# game levels
+ROOMS_V = {'E':15,'M':25,'H':45,'H+':60}  # number of rooms in the vertical direction
+GAME_CHEESE = {'E':1,'M':5,'H':10,'H+':15} # number of cheeses to store 
+
 LAST_CHEESE_ROOM = 0
 
 windowSurface = pygame.display.set_mode([WINDOWWIDTH, WINDOWHEIGHT])
@@ -53,55 +64,69 @@ pygame.display.set_caption('Maze')
 # Class for the maze
 class Maze(object):
 #
-
-
+    rooms_V = 0  # Number of rooms in vertical direction
+    rooms_H = 0  # Number of rooms in horizontal
+    room_size = 0# Size of each room in pixels
+    starting_col = 0  # Starting column
+    starting_row = 0  # Starting row
+    difficulty = 'M'  # difficulty of maze, default to medium
+    number_cheeses = 0 # number of cheeses actually stored
 
     def __init__(self):
     # Maze initialization method called when maze is created
-
-        
+        Maze.difficulty = 'M'   # default difficulty to medium
+            
         return  # return from Maze.__init__
 
-    def build(self,difficulty = 'M'):
-    # Maze.build function called at the Maze object level to build a maze.
-        if difficulty == 'E':
-            temp_rooms = int(ROOMS_V / 2)
-        elif difficulty == 'M':
-            temp_rooms = int(ROOMS_V)
-        elif difficulty == 'H':
-            temp_rooms = int(ROOMS_V * 2)
-        elif difficulty == 'H+':
-            temp_rooms = int(ROOMS_V * 4)
+    def build(self):
+        Room.rooms = []   # empty the list of rooms before building them
+        Path.clear_paths()  # empty all the path lists
 
+        
+    # Maze.build function called at the Maze object level to build a maze.
+        Maze.rooms_V = ROOMS_V[Maze.difficulty]
+
+        '''if Maze.difficulty == 'E':
+            Maze.rooms_V = int(ROOMS_V[0])
+        elif Maze.difficulty == 'M':
+            Maze.rooms_V = int(ROOMS_V[1])
+        elif Maze.difficulty == 'H':
+            Maze.rooms_V = int(ROOMS_V[2])
+        elif Maze.difficulty == 'H+':
+            Maze.rooms_V = int(ROOMS_V[3])'''
+        Maze.rooms_H = int(Maze.rooms_V * (float(MAZE_WIDTH)/float(MAZE_HEIGHT)))
+        Maze.room_size = int(float(MAZE_HEIGHT)/float(Maze.rooms_V))
+              
+        Maze.starting_col = 0
+        Maze.starting_row = int(Maze.rooms_V/2)
+            
         # Fill in the rooms array with the room objects
-        for h in range (0,int(temp_rooms * (float(MAZE_WIDTH)/float(MAZE_HEIGHT)))):
+        for h in range (0,Maze.rooms_H):
             Room.rooms.append([])  # this creates the second dimension
-            for v in range(0,temp_rooms):
-                room = Room(size=int(float(MAZE_HEIGHT)/float(temp_rooms)),row=v,col=h)
+            for v in range(0,Maze.rooms_V):
+                room = Room(size=Maze.room_size,row=v,col=h)
                 Room.rooms[h].append(room)
                 Room.unused_rooms.append(room)
         
         # generator doesn't mark the starting room because it is used for branches
         # so mark the starting room as solid white
 
-
-
         while True:
-            room = Room.rooms[STARTING_COL][STARTING_ROW]
+            room = Room.rooms[Maze.starting_col][Maze.starting_row]
             room.room_color = WHITE
             room.state = 'P'
             Room.draw(room)
 
             # Do a random walk for primary path
             p_path = Path() # create an object for the primary path
-            east_exit = p_path.random_walk(col=STARTING_COL,row=STARTING_ROW,
+            east_exit = p_path.random_walk(col=Maze.starting_col,row=Maze.starting_row,
                                     color=RED,room_state='P',seek_east=True)
             if east_exit:
                 break
             else:
                 Maze.reset(maze) # reset the array and try again
 
-        room = Room.rooms[STARTING_COL][STARTING_ROW]
+        room = Room.rooms[Maze.starting_col][Maze.starting_row]
         Room.unused_rooms.remove(room)
         p_path.rooms.insert(0,room)  # add starting room to head of rooms list
 
@@ -173,17 +198,17 @@ class Maze(object):
             if status:
                 Path.dead_end_paths.append(d_path)
             
-        time.sleep(5)
+        time.sleep(1)
 
         # Show maze in light color
-        for col in range(0,ROOMS_H):
-            for row in range(0,ROOMS_V):
+        for col in range(0,Maze.rooms_H):
+            for row in range(0,Maze.rooms_V):
                 room = Room.rooms[col][row]
                 room.room_color = LIGHTGREY
                 room.draw()
 
         # Redraw the starting room in white
-        room = Room.rooms[STARTING_COL][STARTING_ROW]
+        room = Room.rooms[Maze.starting_col][Maze.starting_row]
         room.room_color = WHITE
         room.draw()
         pygame.display.update()
@@ -194,8 +219,8 @@ class Maze(object):
     def reset(self):
     # Maze method to reset the room array to initial condition
         Room.unused_rooms = []  # empty the unused rooms list
-        for col in range (0,ROOMS_H):
-            for row in range(0,ROOMS_V):
+        for col in range (0,Maze.rooms_H):
+            for row in range(0,Maze.rooms_V):
                 room = Room.rooms[col][row]
                 Room.unused_rooms.append(room)
                 room.room_color = BACKGROUND
@@ -209,6 +234,32 @@ class Maze(object):
                 room.draw()
 
         return # return from Maze.reset
+
+    def store_cheese(self):
+    # store cheese in the longest paths of level 4 paths
+        num_cheeses = GAME_CHEESE[Maze.difficulty]
+        num_stored = 0    
+            # find the longest path not already used
+        path_used = []
+        while num_stored < num_cheeses:
+            longest_path = 0
+            most_rooms = 0
+            for path_index in range(0,len(Path.level4_paths)):
+                if ( (len(Path.level4_paths[path_index].rooms) > most_rooms) and
+                     (path_index not in path_used) ):
+                     longest_path = path_index
+                     most_rooms = len(Path.level4_paths[path_index].rooms)
+
+            path_used.append(longest_path) # use longest path not yet used           
+            path =Path.level4_paths[longest_path]
+            room = path.rooms[len(path.rooms)-1]
+            room.room_color = GOLD
+            room.contents.append('cheese')
+            room.draw()
+            num_stored += 1
+            pygame.display.update()
+        self.number_cheeses = num_stored   # Save the number actually stored
+        return  # return from store cheeese
 
 #------------------- Path Class ----------------------------------------
 # Class for paths through the maze
@@ -244,7 +295,7 @@ class Path(object):
             if seek_east:
                possible_directions=['N','N','S','S','E','E','E','W']            
             if seek_east:
-                if (row == 0) |(row >= ROOMS_V-1): # don't loop back if N or S
+                if (row == 0) |(row >= Maze.rooms_V-1): # don't loop back if N or S
                     possible_directions.remove('W')
             while len(possible_directions) > 0:
                 room = Room.rooms[col][row]
@@ -276,7 +327,7 @@ class Path(object):
                     # knock down the wall in old and new room.
                     Room.knock_out_walls(direction,room,old_room)    
                     
-                    if seek_east and (col == ROOMS_H-1):
+                    if seek_east and (col == Maze.rooms_H-1):
 
                         return True # we found an east exit
                     else:
@@ -395,7 +446,16 @@ class Path(object):
         print('build dead end - tilt, shouldnot get here')
         return False  # shouldn't ever get here.
 
+# method to clear out all paths for maze reset
+    def clear_paths():
+        Path.primary_path = [] # the primary path object in list same as others
+        Path.level2_paths = [] # the list of paths that are secondary
+        Path.level3_paths = [] # list of the third level paths
+        Path.level4_paths = [] # list of fourth level paths
+        Path.dead_end_paths = [] # list dead end paths randomly connected to others
 
+
+        
 
 #------------------- Room Class  ----------------------------------------
 #Class for the rooms in the maze
@@ -404,13 +464,12 @@ class Room(object):
     rooms = []  # holds the doubly indexed list of room objects
     unused_rooms = [] # single indexed list of the unused rooms
     
-    def __init__(self,size=20,row=0,col=0):
+    def __init__(self,size=Maze.room_size,row=0,col=0):
     #Room initialization method called when room is created.  Column and row
     # give the position in the array
         self.room_color = BACKGROUND  # chose the paint colors
         self.wall_color = BLACK
         self.size = size  # size of the room in pixels
-        print(self.size)
         self.col = col    # column coordinate
         self.row = row   # row coordinate
         self.state = None   # usage state of the room
@@ -476,7 +535,7 @@ class Room(object):
                  row -=1
                  moved = True
         if ( (direction == 'S') &
-             (self.row < (ROOMS_V-1) ) ):
+             (self.row < (Maze.rooms_V-1) ) ):
             if( (not self.s_wall) |  (not wall_check)):
                  row +=1
                  moved = True
@@ -486,7 +545,7 @@ class Room(object):
                  col -=1
                  moved = True
         if ( (direction == 'E') &
-             (self.col < (ROOMS_H-1) ) ):
+             (self.col < (Maze.rooms_H-1) ) ):
             if( (not self.e_wall) |  (not wall_check)):
                  col +=1
                  moved = True
@@ -517,6 +576,8 @@ class Room(object):
         Room.draw(room)
 
         return # return from knock_out_walls
+
+
 #---------------------- Rat Class ----------------------------------------
 # Rat class for the rat that is going to run the maze
 class Rat(object):  # create Rat object
@@ -525,7 +586,7 @@ class Rat(object):  # create Rat object
 
         self.direction = direction
         self.color = color
-        self.room = Room.rooms[STARTING_COL][STARTING_ROW]
+        self.room = Room.rooms[Maze.starting_col][Maze.starting_row]
         self.cheeses = []  # empty list of cheeses we carrys
 
         self.draw()  # draw him in the starting room
@@ -536,7 +597,7 @@ class Rat(object):  # create Rat object
     # draw the rat in his room
 
         pygame.draw.circle(windowSurface,self.color,self.room.rect.center,
-                           int(self.room.size/3),0)
+                           int(Maze.room_size/3),0)
         pygame.display.update()
 
         return  # return from Rat.__init__
@@ -545,7 +606,7 @@ class Rat(object):  # create Rat object
     # erase the rat from this room
 
         pygame.draw.circle(windowSurface,self.room.room_color,
-                           self.room.rect.center,int(self.room.size/3),0)
+                           self.room.rect.center,int(Maze.room_size/3),0)
         pygame.display.update()
 
         return # return from Rat.erase
@@ -1092,32 +1153,7 @@ def write_text(text='TEXT TEST',topleft=(200,200),font_size=50,color=YELLOW):
 #-------------Application specific setup functions not part of a class ------
 
 
-def store_cheese(num_cheeses= 10):
-# store cheese in the longest paths of level 4 paths
 
-    num_stored = 0    
-        # find the longest path not already used
-    path_used = []
-    while num_stored < num_cheeses:
-        longest_path = 0
-        most_rooms = 0
-        for path_index in range(0,len(Path.level4_paths)):
-            if ( (len(Path.level4_paths[path_index].rooms) > most_rooms) and
-                 (path_index not in path_used) ):
-                 longest_path = path_index
-                 most_rooms = len(Path.level4_paths[path_index].rooms)
-
-        path_used.append(longest_path) # use longest path not yet used           
-        path =Path.level4_paths[longest_path]
-        room = path.rooms[len(path.rooms)-1]
-        room.room_color = GOLD
-        room.contents.append('cheese')
-        room.draw()
-        num_stored += 1
-        pygame.display.update()
-    return  # return from store cheeese
-def store_cheese_room(room):
-    return
 def init_controls():
 # Initialize the game controls and scoreboard widgets
 # This is mainley a function for Loqoman, his editor makes these things easy to see
@@ -1184,37 +1220,34 @@ def init_controls():
 #---------------End of general purpose functions --------------------#           
 #---------------Button Applications handlers-------------------------#
 def go_application_handler(self):
+    global start
     if start == False:
         current_time.set(delay = 10000000)
         go_app_time = True
     global timeC
     timeC = 'Elapsed Time: ' + current_time.return_eta()    
-    global start  #Has to be global because of where it is being referenced
     start = True
     return
 
 def new_maze_handler(self):
-    print(difficulty)
-    maze.build(difficulty=difficulty)
-    
-    
+
+    maze.build()
+
+    # put the rat in his home room and draw him there
+    rat.room = Room.rooms[Maze.starting_col][Maze.starting_row]    
     rat.draw()
-    
-    store_cheese(GAME_CHEESE)
+    self.toggle()
+    maze.store_cheese()
 
     new.toggle()
 def easy_button_handler(self): #Changing the global var, difficulty to E for easy, M for medium, H for hard, and H+ for really hard
-    global difficulty
-    difficulty = 'E'
+    Maze.difficulty = 'E'
 def med_button_handler(self):
-    global difficulty
-    difficulty = 'M'
+    Maze.difficulty = 'M'
 def hrd_button_handler(self):
-    global difficulty
-    difficulty = 'H'
+    Maze.difficulty = 'H'
 def hrdr_button_handler(self):
-    global difficulty
-    difficulty = 'H+' 
+    Maze.difficulty = 'H+' 
     
 
 #----------------Main portion of the program ver 0.2 ----------------#
@@ -1222,14 +1255,12 @@ def hrdr_button_handler(self):
 pygame.key.set_repeat(50,50)
 init_controls()
 
-global difficulty
-difficulty = 'M'
 
 maze = Maze()
 
-maze.build(difficulty = difficulty)
+maze.build()  # Build maze with medium difficulty default
 
-store_cheese(GAME_CHEESE)
+maze.store_cheese()
 
 rat = Rat(color=RED)
 #Which player has gone
@@ -1287,14 +1318,15 @@ while True:
 
                         widget_object.handler()#Well, its clicked, so do the self.handler()
     if player1_loop == False: #If player 1 is going
-        if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]): #wait untill they have all the cheese and are at the begginiing
+        if ( (rat.cheese_num() >= maze.number_cheeses) &
+         (rat.room == Room.rooms[Maze.starting_col][Maze.starting_row]) ): #wait untill they have all the cheese and are at the begginiing
             start = False
             if int(currentTimer) < high_score1:
                 high_score1 = int(currentTimer)
             player1_score.update('Best time: ' + str(high_score1))
             player1_loop = True #Meaning if they have gone or not, in this case, this is saying that player1 HAS gone 
             rat.change_color(BLUE)
-            store_cheese(GAME_CHEESE)
+            maze.store_cheese()
             rat.reset_cheese()
             go.toggle() #Re toggling the go button
             rat.change_color(BLUE)
@@ -1303,7 +1335,8 @@ while True:
             player1.toggle()
             player2.toggle()
     elif player2_loop == False: #If player 2 is going
-        if (rat.cheese_num() >= GAME_CHEESE) & (rat.room == Room.rooms[STARTING_COL][STARTING_ROW]):
+        if ( (rat.cheese_num() >= maze.number_cheeses) &
+         (rat.room == Room.rooms[Maze.starting_col][Maze.starting_row]) ):
             start = False
             if int(currentTimer) < high_score2:
                 high_score2 = int(currentTimer)
@@ -1311,7 +1344,7 @@ while True:
             player1_loop = False
             rat.change_color(RED)
             rat.reset_cheese()
-            store_cheese(GAME_CHEESE)
+            maze.store_cheese()
             go.toggle()
             player1.toggle()
             player2.toggle()
