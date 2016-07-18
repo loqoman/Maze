@@ -5,10 +5,13 @@ import pygame, sys, time, random,math
 from pygame.locals import *
 
 pygame.init()
-''' Maze ver 0.1 - have the rat look for the cheeses using the arrow keys.
+
+''' 
+Maze ver 0.1 - have the rat look for the cheeses using the arrow keys + keyboard.
 Scoring and controls not implemented yet nor does he know when he has found the
 way out.  But you can pick up the cheeses.
-If you want it to be hard, change ROOMS_V to 50 and see what happens.'''
+If you want it to be hard, change ROOMS_V to 50 and see what happens.
+'''
 
 
 BLACK = (0,0,0)
@@ -209,6 +212,7 @@ class Maze(object):
 
 #------------------- Path Class ----------------------------------------
 # Class for paths through the maze
+# Mostly used in the creation of the maze
 class Path(object):
     primary_path = [] # the primary path object in list same as others
     level2_paths = [] # the list of paths that are secondary
@@ -556,6 +560,8 @@ class Rat(object):  # create Rat object
             self.draw()   # draw rat in new room
 
         return status   # return whether move occurred or not
+    def Ai_move(self):
+        
 
     def check_for_cheese(self,room):
     # see if there is cheese in room, if so, pick up cheese, change room color
@@ -575,10 +581,58 @@ class Rat(object):  # create Rat object
         self.cheeses = []
     def change_color(self,color_n):
         self.color = color_n
+#Node class to hold the Nodes for the link-list
+#-------------------Node and link-list class---------------------------#
+# So heres the plan. Each node points to the node behind it,
+# Then each node will hold a 'room' and the node will point
+# To the node that the rat came from, so the one behind it.
+# Which means that the very first node will not be pointing at anything.
+#
+# There might be some way to use the linked list class, but I cant think of anything.
+# Each node will be in a list of a linkedlist
+#----------------------------------------------------------------------#
+class Node(object):
+    #
+    def __init__(self, data=None, marked_node=None):
+        self.data = data
+        self.marked_node = marked_node
+    #Each node holds data and the previous node
+    def get_data(self):
+        return self.data
+    #Ment to be used per node
+    def get_marked(self):
+        return self.marked_node
+    #Set the marked node
+    def set_marked(self, new_marked):
+        self.marked_node = new_marked
+
+    def size(self):
+        current = self.head
+        count = 0
+        while current:
+            count += 1
+            current = current.get_next()
+    #The search method finds a node with the inputted data
+    def search(self, data):
+        current = self.head
+        found = False
+        while current and found is False:
+            if current.get_data() == data:
+                found = True
+            else:
+                current = current.get_next()
+        if current is None:
+            raise ValueError("Data not in list")
+        return current
+        return count
+#Dont know the value of the linkedlist class RN
+class LinkedList(object):
+    def __init__(self, head=None):
+        self.head = head
+#-----------------------End of both link-list classes--------#
 #------------------------------------------------------------------
 # Define the widget classes
 #------------------------------------------------------------------
-
 class Widget(object):
 # Widget class for all widgets,  its  function is mainly to hold the
 # dictionary of all widget objects by name as well as the application
@@ -879,7 +933,7 @@ class Text(Widget):
 
         pygame.display.update()
 
-    # Text method to update text and redraw
+    # Text method to change text and redraw
     def update(self,text):
         self.text = text
         self.draw()
